@@ -3,3 +3,4 @@ terraform/vpc/terraform.tfstate
 /terraform/.terraform
 *.tfstate
 terraform/.terraform.tfstate.lock.info
+*.backup
