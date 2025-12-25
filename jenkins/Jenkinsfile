@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = "ap-south-1"
+        ECR_REGISTRY = "<AWS_ACCOUNT_ID>.dkr.ecr.ap-south-1.amazonaws.com"
+        FRONTEND_IMAGE = "ecommerce-frontend"
+        BACKEND_IMAGE  = "ecommerce-backend"
+        K8S_NAMESPACE  = "ecommerce"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/mrsivas/devops-ecommerce-platform.git'
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh """
+                docker build -t $FRONTEND_IMAGE app/frontend
+                docker build -t $BACKEND_IMAGE app/backend
+                """
+            }
+        }
+
+        stage('Authenticate to ECR') {
+            steps {
+                sh """
+                aws ecr get-login-password --region $AWS_REGION |
+                docker login --username AWS --password-stdin $ECR_REGISTRY
+                """
+            }
+        }
+
+        stage('Tag & Push Images') {
+            steps {
+                sh """
+                docker tag $FRONTEND_IMAGE:latest $ECR_REGISTRY/$FRONTEND_IMAGE:latest
+                docker tag $BACKEND_IMAGE:latest  $ECR_REGISTRY/$BACKEND_IMAGE:latest
+
+                docker push $ECR_REGISTRY/$FRONTEND_IMAGE:latest
+                docker push $ECR_REGISTRY/$BACKEND_IMAGE:latest
+                """
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                kubectl set image deployment/frontend frontend=$ECR_REGISTRY/$FRONTEND_IMAGE:latest -n $K8S_NAMESPACE
+                kubectl set image deployment/backend backend=$ECR_REGISTRY/$BACKEND_IMAGE:latest -n $K8S_NAMESPACE
+                """
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh """
+                kubectl rollout status deployment/frontend -n $K8S_NAMESPACE
+                kubectl rollout status deployment/backend -n $K8S_NAMESPACE
+                """
+            }
+        }
+
+        stage('Manual Approval - Production') {
+            steps {
+                input message: 'Approve deployment to production?'
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo "Deployment failed. Rolling back..."
+            sh """
+            kubectl rollout undo deployment/frontend -n $K8S_NAMESPACE
+            kubectl rollout undo deployment/backend  -n $K8S_NAMESPACE
+            """
+        }
+
+        success {
+            echo "Deployment completed successfully 🎉"
+        }
+    }
+}
