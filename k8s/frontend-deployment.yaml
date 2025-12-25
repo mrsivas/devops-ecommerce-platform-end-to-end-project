@@ -20,6 +20,6 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: <AWS_ACCOUNT_ID>.dkr.ecr.ap-south-1.amazonaws.com/ecommerce-frontend:latest
+        image: mrsivas/ecommerce-frontend:latest
         ports:
         - containerPort: 80
