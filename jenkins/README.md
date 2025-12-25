@@ -22,3 +22,21 @@ The pipeline automates the build, test, and deployment processes for the applica
 3. Monitor builds and deployments via the Jenkins dashboard.
 
 For more details, refer to the main [README.md](../README.md) in the root directory.
+
+## Pipeline Execution
+
+- Commit code to GitHub
+
+- Jenkins auto-triggers pipeline
+
+- Watch stages:
+
+-- Build
+
+-- Push
+
+-- Deploy
+
+-- Approve prod deployment
+
+- Rollback happens automatically if failure occurs
