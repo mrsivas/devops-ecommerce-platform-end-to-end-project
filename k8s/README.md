@@ -1,4 +1,3 @@
-Workspace: Collecting workspace information```markdown
 # Kubernetes Configuration for E-Commerce Platform
 
 This directory contains Kubernetes manifests for deploying the e-commerce platform, including backend API, frontend, and supporting resources.
@@ -53,4 +52,3 @@ The setup includes:
 - Frontend runs on port 80.
 - Ingress uses AWS ALB for internet-facing access.
 - Adjust replicas or images as needed.
-```
